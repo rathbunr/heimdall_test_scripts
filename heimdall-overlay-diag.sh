@@ -58,8 +58,8 @@ section() {
 # Require sudo upfront so we don't get prompted mid-run
 sudo -v || { echo "Need sudo. Exiting."; exit 1; }
 
-echo "${BOLD}Heimdall Overlay Diagnostic — Work vs Home Lab Delta${RESET}"
-echo "Baseline: heimdall-01.rh.corp.ritcsusa.com (working)"
+echo "${BOLD}Heimdall Overlay Diagnostic — Work vs Test Lab Delta${RESET}"
+echo "Baseline: heimdall-01 (working)"
 echo "Host:     $(hostname -f)"
 echo "Date:     $(date)"
 echo
