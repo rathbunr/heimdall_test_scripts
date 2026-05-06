@@ -1,0 +1,26 @@
+# 1. Stop the workload containers cleanly (pod stays)
+sudo -i -u svc_heimdall env XDG_RUNTIME_DIR=/run/user/1001 DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1001/bus systemctl --user stop heimdall-database heimdall-server heimdall-nginx heimdall-gateway
+
+# 2. Reapply SELinux labels (idempotent if already correct)
+sudo restorecon -RFv /home/svc_heimdall/.local/share
+
+# 3. Re-own pgdata through the user namespace to in-container postgres UID 1001
+sudo -i -u svc_heimdall env XDG_RUNTIME_DIR=/run/user/1001 podman unshare chown -R 1001:1001 /home/svc_heimdall/.local/share/heimdall_pgdata
+
+# 4. Same for nginx_certs (in-container nginx is UID 997, GID 995)
+sudo -i -u svc_heimdall env XDG_RUNTIME_DIR=/run/user/1001 podman unshare chown -R 997:995 /home/svc_heimdall/.local/share/heimdall_nginx_certs
+
+# 5. Verify ownership now matches expectations
+sudo ls -la /home/svc_heimdall/.local/share/ | grep heimdall_
+
+# 6. Start one container at a time and watch
+sudo -i -u svc_heimdall env XDG_RUNTIME_DIR=/run/user/1001 DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1001/bus systemctl --user start heimdall-database
+sleep 10
+sudo -i -u svc_heimdall env XDG_RUNTIME_DIR=/run/user/1001 podman ps -a
+sudo -i -u svc_heimdall env XDG_RUNTIME_DIR=/run/user/1001 podman logs database 2>&1 | tail -20
+
+# 7. If database is healthy, start the rest
+sudo -i -u svc_heimdall env XDG_RUNTIME_DIR=/run/user/1001 DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1001/bus systemctl --user start heimdall-server heimdall-nginx heimdall-gateway
+
+# 8. Re-run forensics to confirm clean state
+sudo ./heimdall-forensics-v3.sh
