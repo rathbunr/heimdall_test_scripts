@@ -1,0 +1,27 @@
+# Is CB sensor loaded?
+sudo lsmod | grep -iE 'cb|carbon|cbsensor'
+sudo systemctl status cbdaemon cbagentd 2>/dev/null
+
+# CB log location varies by version
+sudo ls -la /var/log/cb/ /var/opt/carbonblack/ 2>/dev/null
+sudo tail -100 /var/log/cb/sensor.log 2>/dev/null
+
+# What else got injected? Compare process tree against home
+ps -ef | awk '{print $8}' | sort -u > /tmp/work-procs.txt
+# (run same on home, eyeball the diff)
+
+# Open file handles on overlay paths from non-container processes
+sudo lsof 2>/dev/null | grep -E 'overlay|svc_heimdall' | grep -vE 'podman|conmon|crun|nginx|postgres'
+
+# inotify saturation (CB and similar agents eat watches aggressively)
+sudo find /proc/*/fd -lname 'anon_inode:inotify' 2>/dev/null | \
+    awk -F/ '{print $3}' | sort | uniq -c | sort -rn | head
+
+# Kernel taint - CB taints the kernel
+cat /proc/sys/kernel/tainted
+
+# Recent kernel messages, beyond just overlay
+sudo dmesg -T | tail -50
+
+# Any quarantine actions in messages
+sudo grep -iE 'quarantine|blocked|denied|cb_' /var/log/messages | tail -30
