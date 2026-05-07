@@ -42,3 +42,23 @@ sudo -i -u svc_heimdall env XDG_RUNTIME_DIR=/run/user/1001 \
 sudo -i -u svc_heimdall env XDG_RUNTIME_DIR=/run/user/1001 \
   DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1001/bus \
   systemctl --user start heimdall-gateway 2>&1
+
+
+
+
+Command 1:
+sudo -i -u svc_heimdall env XDG_RUNTIME_DIR=/run/user/1001 podman run --rm registry1.dso.mil/ironbank/opensource/postgres/postgresql:17 id postgres
+
+Command 2:
+sudo ls -la /home/svc_heimdall/.local/share/heimdall_pgdata/
+
+Command 3:
+sudo -i -u svc_heimdall env XDG_RUNTIME_DIR=/run/user/1001 podman logs database 2>&1 | tail -20
+
+
+
+
+
+
+
+
