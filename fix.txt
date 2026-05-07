@@ -28,3 +28,17 @@ sudo -i -u svc_heimdall env XDG_RUNTIME_DIR=/run/user/1001 podman ps -a
 sudo -i -u svc_heimdall env XDG_RUNTIME_DIR=/run/user/1001 \
   DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1001/bus \
   systemctl --user start heimdall-server heimdall-nginx heimdall-gateway
+
+
+
+# Is the gateway quadlet even on disk?
+sudo -i -u svc_heimdall ls -la /home/svc_heimdall/.config/containers/systemd/ | grep gateway
+
+# Does systemd know about the service?
+sudo -i -u svc_heimdall env XDG_RUNTIME_DIR=/run/user/1001 \
+  systemctl --user list-unit-files | grep -E '(gateway|heimdall)'
+
+# What does the start command actually report?
+sudo -i -u svc_heimdall env XDG_RUNTIME_DIR=/run/user/1001 \
+  DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/1001/bus \
+  systemctl --user start heimdall-gateway 2>&1
